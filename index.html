@@ -1,0 +1,390 @@
+<!DOCTYPE HTML>
+    <html lang="en">
+        <head>
+            <title>Laura Culver</title>
+            <meta charset="UTF-8">
+            <meta name="description" content="">
+            <meta name="keywords" content="">
+            <!--get jQuery (for a couple things...)-->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+            <!--manual scroll resoration so the page loads at the same spot (doesn't work on IE unfortunately)-->
+            <script>history.scrollRestoration = "manual"</script>
+            <script src="https://kit.fontawesome.com/172783f893.js" crossorigin="anonymous"></script>
+            <!--main script-->
+            <script>
+                var first = true;
+                var curSec = "init";
+                var onSec;
+                var scrVal;
+                var sec = {};
+                var timer1;
+                var timer2;
+                
+                //section["name"] = [pic name, top scroll thresh, btm scroll thresh, prev sec, next sec]
+                //hopefully the scroll value never finds it's way lower than -1000 or higher than 5000
+                sec["top"] = ["hom",-1000,10,"nil","hom"];
+                sec["hom"] = ["hom",10,510,"top","abt"];
+                sec["abt"] = ["abt",510,1010,"hom","sch"];
+                sec["sch"] = ["sch",1010,1510,"abt","ctc"];
+                sec["ctc"] = ["top",1510,5000,"sch","nil"];
+                
+                $(document).ready(function(){
+                    
+                    var bkgr = document.getElementById("bkgr");
+                    var hedr = document.getElementById("hedr");
+                    var navi = document.getElementById("navi");
+                    var fNav = document.getElementById("fNav");
+                    var lNav = document.getElementById("lNav");
+                    var content = document.getElementById("content");
+                    var title = document.getElementById("title");
+                    var subtitle = document.getElementById("subtitle");
+                    var logo = document.getElementById("logo");
+
+                    //hack for first time smooth animation - force scroll animations to load by initiating a change in scrollTop
+                    $(window).scrollTop(20);
+                    $(window).scrollTop(0);
+                    
+                    //execute title animations
+                    titleAnims();
+                    
+                    //prechache images
+                    var images = new Array();
+                    function preload() {
+                        for (i = 0; i < preload.arguments.length; i++) {
+                            images[i] = new Image();
+                            images[i].src = preload.arguments[i];
+                        }
+                    }
+                    preload("_images/top.jpg", "_images/hom.jpg", "_images/abt.jpg","_images/sch.jpg","_images/ctc.jpg");
+                    
+                });
+                
+                //title fade in animations
+                function titleAnims() {
+                    $("#hedr").fadeIn({duration: 1000, queue: false});
+                    $("#navi").delay(1000).fadeIn(1000);
+                }
+                
+                //set transitions to speed desired in format "#s"
+                function setTrans(speed) {
+                    bkgr.style.transition = speed;
+                    hedr.style.transition = speed;
+                    navi.style.transition = speed;
+                    content.style.transition = speed;
+                    title.style.transition = speed;
+                    subtitle.style.transition = speed;
+                    logo.style.transition = speed;
+                }
+                
+                //manage changes that need to happen when the user changes the window size
+                window.addEventListener('resize', () => {
+                    
+                    //turn off transitions if the window is being resized
+                    setTrans("0s");
+                    
+                    //want main elements (header,nav,main,footer) to adjust to window
+                    //size if the window is smaller than 980px + 2.25% padding
+                    //or if we're in the top section
+                    
+                    if (window.innerWidth < 1031 || curSec == "top"){
+                        hedr.style.width = "95.5%";
+                        navi.style.width = "95.5%";                   
+                        content.style.width = "95.5%";
+                    }
+                    else {
+                        effectMain();
+                    }
+                    
+                });            
+                
+                function setTopParams() {
+                    
+                    logo.style.height = "40%";
+                    logo.style.paddingTop = "15vh";
+                    logo.style.paddingBottom = "5vh"
+                    title.style.opacity = "1";
+                    title.style.fontSize = "10vh";
+                    subtitle.style.opacity = "1";
+                    subtitle.style.fontSize = "4vh";
+                    
+                    content.style.display = "none";
+                    content.style.opacity = "0";
+                    
+                    bkgr.style.background = "url(_images/hom.jpg)";
+                    bkgr.style.backgroundSize = "cover";
+                    bkgr.style.backgroundPosition = "center";
+                    
+                    hedr.style.width = "95.5%";
+
+                    hedr.style.height = "85%";
+                    hedr.style.top = "45%";
+
+                    navi.style.width = "95.5%";
+                    navi.style.height = "10%";
+                    navi.style.top = "92.55%"; 
+
+                }
+                
+                //fade in main section
+                function fadeMain() {
+                    content.style.display = "block";
+                    timer2 = setTimeout(function(){content.style.opacity = "1";},100);
+                }
+                
+                function effectMain(){
+                    hedr.style.width = "980px";
+                    navi.style.width = "980px"; 
+                }
+                
+                function setMainParams(pic) {
+                    
+                    logo.style.height = "80%";
+                    logo.style.paddingTop = "1vh";
+                    logo.style.paddingBottom = "0vh";
+                    title.style.opacity = "0";
+                    title.style.fontSize = "0vh";
+                    subtitle.style.opacity = "0";
+                    subtitle.style.fontSize = "0vh";
+                    
+                    bkgr.style.background = "url(_images/" + pic + ".jpg)";
+                    bkgr.style.backgroundSize = "cover";
+                    bkgr.style.backgroundPosition = "center";
+                    
+                    //for the look of the main section, change the width to 980px (width of iOS device)
+                    //if the window is stretched beyond 1024px (980 + approx padding)
+                    if (window.innerWidth >= 1031){
+                        effectMain();
+                    }
+                    
+                    hedr.style.height = "10%";
+                    hedr.style.top = "7.25%"
+
+                    navi.style.height = "5%";
+                    navi.style.top = "14.8%";
+                    
+                    timer1 = setTimeout(function(){fadeMain();},500);
+                }
+                
+                //check if scroll value is above top threshold, or below bottom threshold, of current section
+                //if above top, return prev section, else if below bottom, return next section, else return current section
+                function getSec(plc,cur) {
+                    if (plc > sec[cur][2]) {
+                        return sec[cur][4];
+                    }
+                    else if (plc <= sec[cur][1]) {
+                        return sec[cur][3];
+                    }
+                    else {
+                        return cur;
+                    }
+                }
+                
+                //on scroll, execute style changes if trigger threshold reached
+                window.onscroll = function() {scrollFunction()};
+                
+                //manage changes that need to happen on scroll
+                function scrollFunction() {
+                    
+                    scrVal = $(window).scrollTop();                
+                    
+                    if (!first){
+                        onSec = getSec(scrVal,curSec);   
+                    } 
+                    
+                    if (curSec != "top" && scrVal <= 10){
+                        if (!first) {
+                            setTrans("0.5s");
+                            document.getElementById(curSec).style.height = "0px";
+                            document.getElementById(curSec).style.display = "none";
+                        }
+                        curSec = "top";
+                        clearTimeout(timer1);
+                        clearTimeout(timer2);
+                        setTopParams();
+                    }
+                    
+                    else if (curSec != onSec) {
+                        if (!first) {
+                            setTrans("0.5s");
+                        }
+                        
+                        if (curSec != "top"){
+                            document.getElementById(curSec).style.height = "0px";
+                            document.getElementById(curSec).style.display = "none";   
+                        }
+                        
+                        curSec = onSec;
+                        setMainParams(sec[curSec][0]);
+                        document.getElementById(curSec).style.height = "100%";
+                        document.getElementById(curSec).style.display = "block";
+                    }  
+                    
+                    first = false;
+                }
+                
+                //on link click, navigate to appropriate spot in document
+                function link(place){
+                    window.scrollTo({
+                        top: place,
+                        behavior: 'smooth'
+                    });
+                }
+                
+            </script>
+            <link rel="stylesheet" href="_css/format.css">
+            <link rel="stylesheet" href="_css/layout.css">
+            <link rel="stylesheet" href="_css/effects.css">
+            <!--needed to embed this stuff for the header to show on reload & smooth animation hack mentioned in $(document).ready()-->
+            <style>
+                body {
+                    height: 3010px;
+                }
+                #bkgr {
+                    height: 100%;
+                    width: 100%;
+                }
+                header{
+                    display: none;
+                    height: 95%;
+                }
+            </style>
+            <!-- styling for the contact page form-->
+            <style>
+                input[type=text], select, textarea {
+                  width: 100%;
+                  padding: 12px;
+                  border: 1px solid #ccc;
+                  border-radius: 4px;
+                  box-sizing: border-box;
+                  margin-top: 6px;
+                  margin-bottom: 16px;
+                  resize: vertical;
+                }
+
+                input[type=submit] {
+                  background-color: #95c6be;
+                  color: white;
+                  padding: 12px 20px;
+                  border: none;
+                  border-radius: 4px;
+                  cursor: pointer;
+                }
+
+                input[type=submit]:hover {
+                  background-color: #f0cf6d;
+                }
+
+                .container {
+                  border-radius: 5px;
+                  background-color: #f2f2f2;
+                  padding: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div id="bkgr"></div>
+            
+            <!--could only get selectors based on id (rather than element) to work, hence redundant id-->
+            <header id="hedr">
+
+                <img id="logo" src = "_images/LauraCulver_Logo_cropped.png">
+                <h1 id="title">
+                    <span>L</span>aura
+                    <span>C</span>ulver
+                </h1>
+                <h1 id="subtitle">Yoga ∙ Cycling ∙ Fitness</h1>
+
+            </header>
+
+            <!--found that removing whitespace here got rid of extra, non-clickable space in each nav link-->
+            <nav id="navi">
+                <ul>
+                    <li id="fNav">
+                        <a class="navLink" onclick="link(11)">Home</a>
+                    </li><li>
+                        <a class="navLink" onclick="link(511)">About</a>
+                    </li><li>
+                        <a class="navLink" onclick="link(1011)">Schedule</a>
+                    </li><li id="lNav">
+                        <a class="navLink" onclick="link(1511)">Contact</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div id="content">
+                <!--could only get selectors based on id (rather than element) to work, hence redundant id-->
+                <main>
+                    <section id="hom">
+                        <h1 class="sectionHeader">My Mission</h1>
+                        <div class="profile"><img src="_images/gallery_12.JPG" height="500vh"></div>
+                        <p>Fitness doesn't have to be a high-stress challenge!</p>
+                        <br>
+                        <p>It's my mission to offer low-stress classes where you can loosen up through yoga, burn calories through cycling, or work around a physical impairment, among others. It's my goal to help you stay fit and healthy regardless of your experience level.</p>
+                        <br>
+                        <p> Check out my schedule to find a time and location best suited to you. If you have any questions about my practice feel free to reach out from the contact page.</p> 
+                    </section>
+                    <section id="abt">
+                        <h1 class="sectionHeader">About Me</h1>
+                        <div class="profile"><img src="_images/24hr.jpg" width="300"></div>
+                        <div class="about">
+                            <p>Hello! I am a fitness instructor in the Greater Seattle area for 24hr Fitness. I have a passion for motivating and coaching senior citizens through aerobics, yoga, and cycling. 
+                        </div>   
+                        <div class="senior">
+                            <h2>Senior Fitness:</h2>
+                            <p>My main clientele are older in the "seniors" age group. Our focus includes:</p>
+                            <ul>
+                                <li>Working out with light weights.</li>
+                                <li>Stability in order to work on balance.</li>
+                                <li>Aerobics</li>
+                                <p></p>
+                            </ul>
+                        </div>   
+                        <div class="yoga">
+                            <h2>Yoga Experience:</h2>
+                            <p></p>
+                            <ul>
+                                <li>I have been teaching yoga for 13 years.</li>
+                                <li>I have been accredited by the Yoga Alliance (200+hrs)</li>
+                                <li>My approach to Yoga is very gentle and well suited for beginners.</li> 
+                            </ul>
+                        </div>
+                    </section>
+                    <section id="sch">
+                        <h1 class="sectionHeader">See where I'm teaching</h1>
+                        <iframe src="https://calendar.google.com/calendar/embed?height=600&amp;wkst=1&amp;bgcolor=%23ffffff&amp;ctz=America%2FLos_Angeles&amp;src=Y3N1dHRuZXI4MDVAZ21haWwuY29t&amp;src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&amp;color=%23039BE5&amp;color=%230B8043&amp;showTitle=0&amp;showTabs=1&amp;showCalendars=0" frameborder="0" scrolling="no">
+                        </iframe>
+                    </section>
+                    <section id="ctc">
+                        <h1 class="sectionHeader">Reach out</h1>
+                        <p>If you're interested in signing up for a class, have any questions or concerns, or would like to follow me on Facebook, you can get in touch with the options below.</p>    
+                        <a href="https://www.facebook.com/Lauras-Fitness-and-Yoga-100742198543192"><i class="fab fa-facebook-square" aria-hidden="true"></i></a>
+                        <a class="mail" href="mailto:luckimoni@yahoo.com">Email me</a>
+                        <!--Start of form-->
+                        <div class="container">
+                            <form action="/action_page.php">
+                                <label for="fname">First Name</label>
+                                <input type="text" id="fname" name="firstname" placeholder="Your name..">
+
+                                <label for="lname">Last Name</label>
+                                <input type="text" id="lname" name="lastname" placeholder="Your last name..">
+
+                                <label for="country">Country</label>
+                                <select id="country" name="country">
+                                    <option value="australia">Australia</option>
+                                    <option value="canada">Canada</option>
+                                    <option value="usa">USA</option>
+                                </select>
+
+                                <label for="subject">Subject</label>
+                                <textarea id="subject" name="subject" placeholder="Write something.." style="height:100px"></textarea>
+
+                                <input type="submit" value="Submit">
+                            </form>
+                        </div>
+                        <!--End of form-->
+                    </section>
+                </main>
+                <footer id="foot"><p id="footMsg">Authors: Micah Cave, Clay Suttner, and Chearanee Watson --- Photos: Reshot</p></footer>
+            </div>
+        </body>
+    </html>

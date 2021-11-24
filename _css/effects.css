@@ -1,0 +1,19 @@
+/*Interactive effects*/
+#bkgr {
+    transition: 0s;
+}
+header{
+    transition: 0s;
+}
+nav {
+    transition: 0s;
+}
+nav li a {
+    cursor: pointer;
+}
+nav li a:hover {
+    transition: all 0.5s;
+}
+main, section, footer {
+    transition: 0.5s;
+}
